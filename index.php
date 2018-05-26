@@ -20,7 +20,7 @@
 require 'vendor/autoload.php';
 
 $client = new Zelenin\Telegram\Bot\Api('618593900:AAHp7BuTm-MHHRaP63H8IrqD7s7eadWbFtY'); // Set your access token
-$url = 'https://dashboard.heroku.com/apps/shedulehelper'; // URL RSS feed
+$url = 'https://shedulehelper.herokuapp.com/'; // URL RSS feed
 $update = json_decode(file_get_contents('php://input'));
 
 //your app
