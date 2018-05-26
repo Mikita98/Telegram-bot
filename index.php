@@ -1,78 +1,40 @@
 <?php
+    include('vendor/autoload.php'); //Подключаем библиотеку
+    use Telegram\Bot\Api; 
 
-/*
-* This file is part of GeeksWeb Bot (GWB).
-*
-* GeeksWeb Bot (GWB) is free software; you can redistribute it and/or modify
-* it under the terms of the GNU General Public License version 3
-* as published by the Free Software Foundation.
-* 
-* GeeksWeb Bot (GWB) is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-* GNU General Public License for more details.  <http://www.gnu.org/licenses/>
-*
-* Author(s):
-*
-* © 2015 Kasra Madadipouya <kasra@madadipouya.com>
-*
-*/
-require 'vendor/autoload.php';
+    $telegram = new Api('375466075:AAEARK0r2nXjB67JiB35JCXXhKEyT42Px8s'); //Устанавливаем токен, полученный у BotFather
+    $result = $telegram -> getWebhookUpdates(); //Передаем в переменную $result полную информацию о сообщении пользователя
+    
+    $text = $result["message"]["text"]; //Текст сообщения
+    $chat_id = $result["message"]["chat"]["id"]; //Уникальный идентификатор пользователя
+    $name = $result["message"]["from"]["username"]; //Юзернейм пользователя
+    $keyboard = [["Последние статьи"],["Картинка"],["Гифка"]]; //Клавиатура
 
-$client = new Zelenin\Telegram\Bot\Api('618593900:AAHp7BuTm-MHHRaP63H8IrqD7s7eadWbFtY'); // Set your access token
-$url = 'https://shedulehelper.herokuapp.com/'; // URL RSS feed
-$update = json_decode(file_get_contents('php://input'));
-
-//your app
-try {
-
-    if($update->message->text == '/email')
-    {
-    	$response = $client->sendChatAction(['chat_id' => $update->message->chat->id, 'action' => 'typing']);
-    	$response = $client->sendMessage([
-        	'chat_id' => $update->message->chat->id,
-        	'text' => "You can send email to : Kasra@madadipouya.com"
-     	]);
+    if($text){
+         if ($text == "/start") {
+            $reply = "Добро пожаловать в бота!";
+            $reply_markup = $telegram->replyKeyboardMarkup([ 'keyboard' => $keyboard, 'resize_keyboard' => true, 'one_time_keyboard' => false ]);
+            $telegram->sendMessage([ 'chat_id' => $chat_id, 'text' => $reply, 'reply_markup' => $reply_markup ]);
+        }elseif ($text == "/help") {
+            $reply = "Информация с помощью.";
+            $telegram->sendMessage([ 'chat_id' => $chat_id, 'text' => $reply ]);
+        }elseif ($text == "Картинка") {
+            $url = "https://68.media.tumblr.com/6d830b4f2c455f9cb6cd4ebe5011d2b8/tumblr_oj49kevkUz1v4bb1no1_500.jpg";
+            $telegram->sendPhoto([ 'chat_id' => $chat_id, 'photo' => $url, 'caption' => "Описание." ]);
+        }elseif ($text == "Гифка") {
+            $url = "https://68.media.tumblr.com/bd08f2aa85a6eb8b7a9f4b07c0807d71/tumblr_ofrc94sG1e1sjmm5ao1_400.gif";
+            $telegram->sendDocument([ 'chat_id' => $chat_id, 'document' => $url, 'caption' => "Описание." ]);
+        }elseif ($text == "Последние статьи") {
+            $html=simplexml_load_file('http://netology.ru/blog/rss.xml');
+            foreach ($html->channel->item as $item) {
+	     $reply .= "\xE2\x9E\xA1 ".$item->title." (<a href='".$item->link."'>читать</a>)\n";
+        	}
+            $telegram->sendMessage([ 'chat_id' => $chat_id, 'parse_mode' => 'HTML', 'disable_web_page_preview' => true, 'text' => $reply ]);
+        }else{
+        	$reply = "По запросу \"<b>".$text."</b>\" ничего не найдено.";
+        	$telegram->sendMessage([ 'chat_id' => $chat_id, 'parse_mode'=> 'HTML', 'text' => $reply ]);
+        }
+    }else{
+    	$telegram->sendMessage([ 'chat_id' => $chat_id, 'text' => "Отправьте текстовое сообщение." ]);
     }
-    else if($update->message->text == '/help')
-    {
-    	$response = $client->sendChatAction(['chat_id' => $update->message->chat->id, 'action' => 'typing']);
-    	$response = $client->sendMessage([
-    		'chat_id' => $update->message->chat->id,
-    		'text' => "List of commands :\n /email -> Get email address of the owner \n /latest -> Get latest posts of the blog 
-    		/help -> Shows list of available commands"
-    		]);
-
-    }
-    else if($update->message->text == '/latest')
-    {
-    		Feed::$cacheDir 	= __DIR__ . '/cache';
-			Feed::$cacheExpire 	= '5 hours';
-			$rss 		= Feed::loadRss($url);
-			$items 		= $rss->item;
-			$lastitem 	= $items[0];
-			$lastlink 	= $lastitem->link;
-			$lasttitle 	= $lastitem->title;
-			$message = $lasttitle . " \n ". $lastlink;
-			$response = $client->sendChatAction(['chat_id' => $update->message->chat->id, 'action' => 'typing']);
-			$response = $client->sendMessage([
-					'chat_id' => $update->message->chat->id,
-					'text' => $message
-				]);
-
-    }
-    else
-    {
-    	$response = $client->sendChatAction(['chat_id' => $update->message->chat->id, 'action' => 'typing']);
-    	$response = $client->sendMessage([
-    		'chat_id' => $update->message->chat->id,
-    		'text' => "Invalid command, please use /help to get list of available commands"
-    		]);
-    }
-
-} catch (\Zelenin\Telegram\Bot\NotOkException $e) {
-
-    //echo error message ot log it
-    //echo $e->getMessage();
-
-}
+?>
