@@ -4,9 +4,10 @@
     include('users.php');
     use Telegram\Bot\Api; 
 
-    $bot = new Api('618593900:AAHp7BuTm-MHHRaP63H8IrqD7s7eadWbFtY'); //Устанавливаем токен, полученный у BotFather
-    /*$result = $telegram -> getWebhookUpdates(); //Передаем в переменную $result полную информацию о сообщении пользователя
-    
+    $telegram = new Api('618593900:AAHp7BuTm-MHHRaP63H8IrqD7s7eadWbFtY'); //Устанавливаем токен, полученный у BotFather
+    $result = $telegram -> getWebhookUpdates(); //Передаем в переменную $result полную информацию о сообщении пользователя
+	$bot = new \TelegramBot\Api\Client($token);
+    /*
     $text = $result["message"]["text"]; //Текст сообщения
     $chat_id = $result["message"]["chat"]["id"]; //Уникальный идентификатор пользователя
     $name = $result["message"]["from"]["username"]; //Юзернейм пользователя
